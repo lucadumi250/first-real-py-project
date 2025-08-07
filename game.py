@@ -9,10 +9,12 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from random import randint
 from kivy.uix.widget import Widget
+from kivy.uix.slider import Slider
 from kivy.core.audio import SoundLoader
 
 import json 
-        
+
+    
 class ScrButton(Button):
     def __init__(self, screen, direction='right', goal='', text='', **kwargs):
         super().__init__(text=text, **kwargs)
@@ -95,8 +97,6 @@ class FirstScreen(Screen):
     def next1(self, instance):
         self.manager.transition.direction = 'down'
         self.manager.current = 'ScrOption'
-        if self.sound:
-            self.sound.stop()  
             
     def left(self, instance):
         App.get_running_app().stop()
@@ -110,9 +110,13 @@ class Play_Menu(Screen):
         self.background = Image(source = 'focfocfoc.jpg')
         
         self.manele = SoundLoader.load("jojo.mp3")    
-        Clock.schedule_interval(self.update, 1/60)  
-        self.label = Label(text = "Score:" + str(0), size_hint = (.5, .1), pos_hint = {'center_x':0.5, 'center_y': 0.9})
         
+        Clock.schedule_interval(self.update, 1/60)  
+        
+        self.label = Label(text = "Score:" + str(0), size_hint = (.5, .1), pos_hint = {'center_x':0.5, 'center_y': 0.9})
+        self.pause_menu = Label(text = 'Pause', size_hint = (.1, .1), pos_hint = {'center_x': 0.25, 'center_y': 0.9})
+        
+        self.add_widget(self.pause_menu)
         self.layout.add_widget(self.background)
         self.layout.add_widget(self.label)
 
@@ -148,6 +152,14 @@ class Play_Menu(Screen):
         self.sprites.clear()        
         if self.manele:
             self.manele.stop()
+
+    def on_touch_down(self, touch):
+        if self.pause_menu.collide_point(*touch.pos):
+            Clock.unschedule(self.update)
+            self.manager.transition.direction = 'down'
+            self.manager.current = 'pause_menu'
+            return True
+        return super().on_touch_down(touch)
         
 class Option_Menu(Screen):
     def __init__(self, name = 'ScrOption'):
@@ -164,6 +176,10 @@ class Option_Menu(Screen):
         
         audiobtn.bind(on_press = self.modify_audio)
         
+        monsterbtn.bind(on_press = self.troll1)
+        
+        backimgbtn.bind(on_press = self.troll2)
+        
         layout.add_widget(audiobtn)
         layout.add_widget(monsterbtn)
         layout.add_widget(backimgbtn)
@@ -174,73 +190,97 @@ class Option_Menu(Screen):
     def returned(self, instance):
         self.manager.transition.direction = 'up'
         self.manager.current = 'main_menu'
-        
-        self.menu = App.get_running_app().root.get_screen('main_menu')
-        if self.menu.sound:
-            self.menu.sound.play()
-
     
     def modify_audio(self, instance):
         self.manager.transition.direction = 'up'
         self.manager.current = 'modify_volume'
+        
+    def troll1(self, instance):
+        self.manager.transition.direction = 'up'
+        self.manager.current = 'haha1'
+        
+    def troll2(self, instance):
+        self.manager.transition.direction = 'up'
+        self.manager.current = 'haha2'
 
 class Modifying_Audio(Screen):
     def __init__(self, name='modify_volume'):
         super().__init__(name=name)
-        
-        label = Label(text='Volume:', size_hint=(.5, .3), pos_hint={'center_x': 0.5, 'center_y': 0.9})
-        self.bagavolum = TextInput(hint_text="Introduceți volumul între 0 și 100", multiline=False, size_hint=(.5, .1), pos_hint={'center_x': 0.5, 'center_y': 0.75})
-        backbtn = ScrButton(self, direction='right', goal='ScrOption', text='Back to Options', size_hint=(.4, .1), pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        savebtn = ScrButton(self, direction='right', goal='', text='Save the presets', size_hint=(.4, .1), pos_hint={'center_x': 0.5, 'center_y': 0.25})
 
-        backbtn.bind(on_press=self.back)
+        self.layout = FloatLayout()
+
+        self.label = Label(
+            text='Volume: 100%',
+            size_hint=(.5, .1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.85},
+            font_size='20sp'
+        )
+
+        self.slider = Slider(
+            min=0,
+            max=100,
+            value=100,
+            step=1,
+            size_hint=(.8, .1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.7}
+        )
+        self.slider.bind(value=self.on_slider_value_change)
+        
+        savebtn = ScrButton(self, direction='right', goal='', text='Save the presets',
+                            size_hint=(.4, .1), pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
         savebtn.bind(on_press=self.handle_save)
 
-        layout = FloatLayout()
-        layout.add_widget(label)
-        layout.add_widget(self.bagavolum)
-        layout.add_widget(savebtn)
-        layout.add_widget(backbtn)
+        self.layout.add_widget(self.label)
+        self.layout.add_widget(self.slider)
+        self.layout.add_widget(savebtn)
 
-        self.add_widget(layout)
+        self.add_widget(self.layout)
 
-    def back(self, instance):
-        self.manager.transition.direction = 'down'
-        self.manager.current = 'ScrOption'
-        self.bagavolum.text = ''
-
-    def baga_volum_la_sunet_ca_sa_nu_surzesti(self, instance):
+    def on_enter(self):
         try:
-            self.volume = float(self.bagavolum.text) / 100
-            self.volume = max(0.0, min(1.0, self.volume))
-            
+            with open('info.json', 'r') as file:
+                data = json.load(file)
+                vol = data.get("volum", 1.0)
+                self.slider.value = int(vol * 100)
+        except:
+            self.slider.value = 100 
+
+    def on_slider_value_change(self, instance, value):
+        self.label.text = f'Volume: {int(value)}%'
+        self.volume = max(0.0, min(1.0, float(value) / 100))
+
+        try:
             self.menu_audio = App.get_running_app().root.get_screen('main_menu')
             self.menu_joc = App.get_running_app().root.get_screen('ScrPlay')
-            
+
             if self.menu_audio.sound:
                 self.menu_audio.sound.volume = self.volume
             if self.menu_joc.manele:
                 self.menu_joc.manele.volume = self.volume
         except:
-            self.bagavolum.text = 'Put numbers between 0-100'
-            Clock.schedule_once(self.back1, 2)
+            pass  
 
-    def back1(self, dt):
-        self.bagavolum.text = ''
+    def back(self, instance):
+        self.manager.transition.direction = 'down'
+        self.manager.current = 'ScrOption'
 
     def handle_save(self, instance):
-        self.baga_volum_la_sunet_ca_sa_nu_surzesti(instance)
-
+        if not hasattr(self, 'volume'):
+            return
         try:
             with open('info.json', 'r') as file:
                 data = json.load(file)
         except (FileNotFoundError, json.JSONDecodeError):
             data = {}
-          
+
         data["volum"] = self.volume
 
         with open('info.json', 'w') as file:
-            json.dump(data, file, indent = 4)
+            json.dump(data, file, indent=4)
+            
+        self.manager.transition.direction = 'down'
+        self.manager.current = 'ScrOption'
             
 class Jumpscare(Screen):
     def __init__(self, name = 'jumpscare_'):
@@ -267,6 +307,74 @@ class Jumpscare(Screen):
         if self.menu.sound:
             self.menu.sound.play()
         
+class Happy1(Screen):
+    def __init__(self, name='haha1'):
+        super().__init__(name=name)
+        
+        label = Label(
+            text="HAHA, YOU CAN'T CHANGE THE GAME'S MASCOT :)",
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            font_size='20sp'
+        )
+        self.add_widget(label)
+    
+    def on_enter(self):
+        Clock.schedule_once(self.return_to_options, 3)
+        
+    def return_to_options(self, dt):
+        self.manager.transition.direction = 'down'
+        self.manager.current = 'ScrOption'
+
+class Happy2(Screen):
+    def __init__(self, name='haha2'):
+        super().__init__(name=name)
+        
+        label = Label(
+            text="HAHA, YOU CAN'T CHANGE THE GAME'S BACKGROUND :)",
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            font_size='20sp'
+        )
+        
+        self.add_widget(label)
+        
+    def on_enter(self):
+        Clock.schedule_once(self.return_to_options, 3)
+        
+    def return_to_options(self, dt):
+        self.manager.transition.direction = 'down'
+        self.manager.current = 'ScrOption'
+        
+class PauseMenu(Screen):
+    def __init__(self, name='pause_menu'):
+        super().__init__(name=name)
+        
+        layout = FloatLayout()
+        
+        return_menu_btn = ScrButton(self, direction='right', goal='', text='Back to main menu', size_hint=(.4, .1), pos_hint={'center_x': 0.5, 'center_y': 0.75})
+        return_game_btn = ScrButton(self, direction='right', goal='', text='Back to play menu', size_hint=(.4, .1), pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        
+        return_menu_btn.bind(on_press=self.inapoi)
+        return_game_btn.bind(on_press=self.game)
+        
+        layout.add_widget(return_menu_btn)
+        layout.add_widget(return_game_btn)
+        
+        self.add_widget(layout)
+
+    def inapoi(self, instance):
+        self.manager.transition.direction = 'up'
+        self.manager.current = 'main_menu'
+        
+        r_play = App.get_running_app().root.get_screen('ScrPlay')
+        r_play.score = 0
+        
+    def game(self, instance):
+        self.manager.transition.direction = 'up'
+        self.manager.current = 'ScrPlay'
+
+        scr_play = App.get_running_app().root.get_screen('ScrPlay')
+        Clock.schedule_interval(scr_play.update, 1/60)
+            
 class Falling_Round_Things(App):
     def build(self):
         sm = ScreenManager()
@@ -275,7 +383,9 @@ class Falling_Round_Things(App):
         sm.add_widget(Option_Menu())
         sm.add_widget(Jumpscare())
         sm.add_widget(Modifying_Audio())
-        
+        sm.add_widget(Happy1())
+        sm.add_widget(Happy2())
+        sm.add_widget(PauseMenu())
         volum = self.load_volume()
 
         main_menu = sm.get_screen('main_menu')
@@ -296,5 +406,5 @@ class Falling_Round_Things(App):
                 return max(0.0, min(1.0, volum))
         except (FileNotFoundError, json.JSONDecodeError):
             return 1.0
-    
+
 Falling_Round_Things().run()
