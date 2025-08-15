@@ -11,6 +11,7 @@ from random import randint
 from kivy.uix.widget import Widget
 from kivy.uix.slider import Slider
 from kivy.core.audio import SoundLoader
+from kivy.uix.video import Video
 
 import json 
 
@@ -283,29 +284,29 @@ class Modifying_Audio(Screen):
         self.manager.current = 'ScrOption'
             
 class Jumpscare(Screen):
-    def __init__(self, name = 'jumpscare_'):
-        super().__init__(name = name)
+    def __init__(self, name='jumpscare_'):
+        super().__init__(name=name)
         
-        sperietura = Image(source = 'titlu.png', size_hint = (1, 1), size = (300, 300))
-        bcbtn = ScrButton(self, direction = 'right', goal = '', text = 'Back to main menu', size_hint = (.4, .1), pos_hint = {'center_x':0.25, 'center_y': 0.9})
-        
-        bcbtn.bind(on_press = self.jumpscares)
-        bcbtn.bind(on_press = self.manele_pe_sistem)
-        layout = FloatLayout()
-        
-        layout.add_widget(sperietura)
-        layout.add_widget(bcbtn)
-        
-        self.add_widget(layout)
-        
+        self.sperietura = Video(source='scream.mp4', state='stop', options={'eos': 'loop'})
+        self.add_widget(self.sperietura)
+
+    def on_enter(self):    
+               
+        self.sperietura.state = 'play'
+
+        Clock.schedule_once(self.jumpscares, 7)
+        Clock.schedule_once(self.jumpscares, 7)
+
     def jumpscares(self, instance):
+        
+        self.sperietura.state = 'stop'
+        
         self.manager.transition.direction = 'left'
         self.manager.current = 'main_menu'
         
-    def manele_pe_sistem(self, instance):
-        self.menu = App.get_running_app().root.get_screen('main_menu')
-        if self.menu.sound:
-            self.menu.sound.play()
+        menu_screen = self.manager.get_screen('main_menu')
+        if hasattr(menu_screen, 'sound') and menu_screen.sound:
+            menu_screen.sound.play()
         
 class Happy1(Screen):
     def __init__(self, name='haha1'):
