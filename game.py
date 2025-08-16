@@ -286,8 +286,12 @@ class Modifying_Audio(Screen):
 class Jumpscare(Screen):
     def __init__(self, name='jumpscare_'):
         super().__init__(name=name)
+
+        label = Label(text = 'Game over!', pos_hint = {'center_x':0.5, 'center_y':0.9})
         
         self.sperietura = Video(source='scream.mp4', state='stop', options={'eos': 'loop'})
+
+        self.add_widget(label)
         self.add_widget(self.sperietura)
 
     def on_enter(self):    
