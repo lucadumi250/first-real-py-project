@@ -42,12 +42,38 @@ class FallingSprite(Image):
         else:
             self.reset()
             self.game.score -= 1
-            self.game.label.text = "Score: " + str(self.game.score)   
+            self.game.label.text = "Score: " + str(self.game.score) + "\n" + "Boost at 50 points!\nIt is a mystery." 
              
         if self.game.score == -1:
             self.game.jumpscare()
             self.game.score = 0
-            self.game.label.text = "Score: " + str(self.game.score)   
+            self.game.label.text = "Score: " + str(self.game.score) 
+
+            if self.game.score >= 50:
+                self.game.score -= 4
+            if self.game.score >= 200:
+                self.game.score -= 20
+            if self.game.score >= 500:
+                self.game.score -= 75
+             
+        if self.game.score == -1:
+            self.game.jumpscare()
+            self.game.score = 0
+            self.game.label.text = "Score: " + str(self.game.score)  
+            
+        if self.game.score >= 50:
+            self.speed = 250
+            self.n = 5
+            self.game.label.text = "Score: " + str(self.game.score) + "\n" + "Bonus at 200 points!\n It is a mystery."
+            
+        if self.game.score >= 200:
+            self.speed = 300
+            self.n = 25
+            self.game.label.text = "Score: " + str(self.game.score) + "\n" + "At 500, you will face death!!"
+            
+        if self.game.score >= 500:
+            self.game.label.text = "Score: " + str(self.game.score) + "\n" + "You can't make it to 1000 points!"
+            self.speed = 350
             
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
