@@ -1,3 +1,4 @@
+#Calling the function to make the game actually work
 from kivy.app import App 
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
@@ -13,17 +14,20 @@ from kivy.uix.slider import Slider
 from kivy.core.audio import SoundLoader
 from kivy.uix.video import Video
 
+#I use JSON file only to save the volume value
 import json 
 
-    
+#This class is creating the strcuture of a button
 class ScrButton(Button):
     def __init__(self, screen, direction='right', goal='', text='', **kwargs):
         super().__init__(text=text, **kwargs)
         self.screen = screen
         self.direction = direction
         self.goal = goal
-
+        
+#This class defines the sprite, or the main mascot of the game
 class FallingSprite(Image):
+    #intialization
     def __init__(self, **kwargs):
         super().__init__(**kwargs)  
         self.size_hint = (None, None)   
@@ -31,7 +35,8 @@ class FallingSprite(Image):
         self.source = 'pngtree-cute-or-creepy-cartoon-ghost-for-halloween-costume-fantasy-no-background-png-image_10462460.png' 
         self.pos = (randint(0, Window.width - 64), randint(Window.height - 64, Window.height))
         self.speed = 200  
-        
+
+    #this function is making the sprite going down
     def update(self, dt):
         self.game = App.get_running_app().root.get_screen('ScrPlay')
         x, y = self.pos
@@ -39,15 +44,11 @@ class FallingSprite(Image):
             y -= self.speed * dt
         if y + self.height > 0:
             self.pos = (x, y)
+        #this makes the score value to go down by depending of the score value
         else:
             self.reset()
             self.game.score -= 1
             self.game.label.text = "Score: " + str(self.game.score) + "\n" + "Boost at 50 points!\nIt is a mystery." 
-             
-        if self.game.score == -1:
-            self.game.jumpscare()
-            self.game.score = 0
-            self.game.label.text = "Score: " + str(self.game.score) 
 
             if self.game.score >= 50:
                 self.game.score -= 4
@@ -74,7 +75,7 @@ class FallingSprite(Image):
         if self.game.score >= 500:
             self.game.label.text = "Score: " + str(self.game.score) + "\n" + "You can't make it to 1000 points!"
             self.speed = 350
-            
+    #this function increase the score value by touching it
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             self.game = App.get_running_app().root.get_screen('ScrPlay')
