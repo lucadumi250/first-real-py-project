@@ -75,6 +75,7 @@ class FallingSprite(Image):
         if self.game.score >= 500:
             self.game.label.text = "Score: " + str(self.game.score) + "\n" + "You can't make it to 1000 points!"
             self.speed = 350
+            
     #this function increase the score value by touching it
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -85,10 +86,10 @@ class FallingSprite(Image):
             self.game.sprites.remove(self)
             return True
         return super().on_touch_down(touch)
-    
+    #resets the possition of the sprite
     def reset(self):
         self.pos = (randint(0, Window.width - 64), randint(Window.height - 64, Window.height))
-        
+#main menu
 class FirstScreen(Screen):
     def __init__(self, name='main_menu'):
         super().__init__(name=name)
@@ -115,20 +116,20 @@ class FirstScreen(Screen):
         self.sound = SoundLoader.load('Wii Music - Gaming Background Music (HD).mp3')
         if self.sound:
             self.sound.play()
-            
+    #going to play menu       
     def next(self, instance):
         self.manager.transition.direction = 'left'
         self.manager.current  = 'ScrPlay'
         if self.sound:
             self.sound.stop()  
-            
+    #going to settings menu
     def next1(self, instance):
         self.manager.transition.direction = 'down'
         self.manager.current = 'ScrOption'
-            
+    #close the game
     def left(self, instance):
         App.get_running_app().stop()
-            
+#this is play menu
 class Play_Menu(Screen):
     def __init__(self, name = 'ScrPlay', **kwargs):
         super().__init__(**kwargs, name = name)
@@ -149,7 +150,7 @@ class Play_Menu(Screen):
         self.layout.add_widget(self.label)
 
         self.add_widget(self.layout)
-        
+    #this makes the sprite be present
     def update(self, dt):
         for sprite in self.sprites:
             sprite.update(dt)
@@ -158,7 +159,7 @@ class Play_Menu(Screen):
                 sprite = FallingSprite()
                 self.layout.add_widget(sprite)
                 self.sprites.append(sprite)
-
+    #sends you to the losing screen
     def jumpscare(self):
         Clock.unschedule(self.update)
         self.manager.transition.direction = 'down'
@@ -166,13 +167,13 @@ class Play_Menu(Screen):
         for sprite in self.sprites:
             self.layout.remove_widget(sprite)
         self.sprites.clear()
-        
+    #when you enter on this screen
     def on_enter(self, *args):
         if self.manele:
             self.manele.loop = True 
             self.manele.play()
         Clock.schedule_interval(self.update, 1/60)
-
+    #when you leave this screen
     def on_leave(self, *args):
         Clock.unschedule(self.update)
         for sprite in self.sprites:
@@ -180,7 +181,7 @@ class Play_Menu(Screen):
         self.sprites.clear()        
         if self.manele:
             self.manele.stop()
-
+    #for pause menu
     def on_touch_down(self, touch):
         if self.pause_menu.collide_point(*touch.pos):
             Clock.unschedule(self.update)
@@ -188,7 +189,7 @@ class Play_Menu(Screen):
             self.manager.current = 'pause_menu'
             return True
         return super().on_touch_down(touch)
-        
+#settings menu
 class Option_Menu(Screen):
     def __init__(self, name = 'ScrOption'):
         super().__init__(name = name)
@@ -214,23 +215,23 @@ class Option_Menu(Screen):
         layout.add_widget(returnbtn)
         
         self.add_widget(layout)
-        
+    #back to main menu  
     def returned(self, instance):
         self.manager.transition.direction = 'up'
         self.manager.current = 'main_menu'
-    
+    #to modify the sound
     def modify_audio(self, instance):
         self.manager.transition.direction = 'up'
         self.manager.current = 'modify_volume'
-        
+     #just a label   
     def troll1(self, instance):
         self.manager.transition.direction = 'up'
         self.manager.current = 'haha1'
-        
+    #just a label 2
     def troll2(self, instance):
         self.manager.transition.direction = 'up'
         self.manager.current = 'haha2'
-
+#volume screen
 class Modifying_Audio(Screen):
     def __init__(self, name='modify_volume'):
         super().__init__(name=name)
@@ -264,7 +265,7 @@ class Modifying_Audio(Screen):
         self.layout.add_widget(savebtn)
 
         self.add_widget(self.layout)
-
+    #when you enter
     def on_enter(self):
         try:
             with open('info.json', 'r') as file:
@@ -273,7 +274,7 @@ class Modifying_Audio(Screen):
                 self.slider.value = int(vol * 100)
         except:
             self.slider.value = 100 
-
+    #using the slide value, it will set the volume as the slide value
     def on_slider_value_change(self, instance, value):
         self.label.text = f'Volume: {int(value)}%'
         self.volume = max(0.0, min(1.0, float(value) / 100))
@@ -288,11 +289,11 @@ class Modifying_Audio(Screen):
                 self.menu_joc.manele.volume = self.volume
         except:
             pass  
-
+    #sends you to settings menu
     def back(self, instance):
         self.manager.transition.direction = 'down'
         self.manager.current = 'ScrOption'
-
+    #it saves your volume value in a JSON file
     def handle_save(self, instance):
         if not hasattr(self, 'volume'):
             return
@@ -309,7 +310,7 @@ class Modifying_Audio(Screen):
             
         self.manager.transition.direction = 'down'
         self.manager.current = 'ScrOption'
-            
+#the losing game screen
 class Jumpscare(Screen):
     def __init__(self, name='jumpscare_'):
         super().__init__(name=name)
@@ -320,14 +321,14 @@ class Jumpscare(Screen):
 
         self.add_widget(label)
         self.add_widget(self.sperietura)
-
+    #it plays the video
     def on_enter(self):    
                
         self.sperietura.state = 'play'
 
         Clock.schedule_once(self.jumpscares, 7)
         Clock.schedule_once(self.jumpscares, 7)
-
+    #it stops the video and send you to main menu, reseting the score value
     def jumpscares(self, instance):
         
         self.sperietura.state = 'stop'
@@ -338,7 +339,7 @@ class Jumpscare(Screen):
         menu_screen = self.manager.get_screen('main_menu')
         if hasattr(menu_screen, 'sound') and menu_screen.sound:
             menu_screen.sound.play()
-        
+#troll class  
 class Happy1(Screen):
     def __init__(self, name='haha1'):
         super().__init__(name=name)
@@ -356,7 +357,7 @@ class Happy1(Screen):
     def return_to_options(self, dt):
         self.manager.transition.direction = 'down'
         self.manager.current = 'ScrOption'
-
+#troll class 2
 class Happy2(Screen):
     def __init__(self, name='haha2'):
         super().__init__(name=name)
@@ -375,7 +376,7 @@ class Happy2(Screen):
     def return_to_options(self, dt):
         self.manager.transition.direction = 'down'
         self.manager.current = 'ScrOption'
-        
+#pause menu wiht 2 buttons
 class PauseMenu(Screen):
     def __init__(self, name='pause_menu'):
         super().__init__(name=name)
@@ -392,21 +393,21 @@ class PauseMenu(Screen):
         layout.add_widget(return_game_btn)
         
         self.add_widget(layout)
-
+    #it sends you to the main menu
     def inapoi(self, instance):
         self.manager.transition.direction = 'up'
         self.manager.current = 'main_menu'
         
         r_play = App.get_running_app().root.get_screen('ScrPlay')
         r_play.score = 0
-        
+    #it sends you to play menu
     def game(self, instance):
         self.manager.transition.direction = 'up'
         self.manager.current = 'ScrPlay'
 
         scr_play = App.get_running_app().root.get_screen('ScrPlay')
         Clock.schedule_interval(scr_play.update, 1/60)
-            
+#adding the screens and managing with them      
 class Falling_Round_Things(App):
     def build(self):
         sm = ScreenManager()
@@ -429,7 +430,7 @@ class Falling_Round_Things(App):
             play_menu.manele.volume = volum
             
         return sm
-    
+    #loads the volume value at it is in the JSON File
     def load_volume(self):
         try:
             with open('info.json', 'r') as file:
