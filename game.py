@@ -31,8 +31,8 @@ class FallingSprite(Image):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)  
         self.size_hint = (None, None)   
-        self.size = (64, 64)
-        self.source = 'pngtree-cute-or-creepy-cartoon-ghost-for-halloween-costume-fantasy-no-background-png-image_10462460.png' 
+        self.size = (128, 128)
+        self.source = 'pngtree-cute-or-creepy-cartoon-ghost-for-halloween-costume-fantasy-no-background-png-image_10462460-removebg-preview.png'
         self.pos = (randint(0, Window.width - 64), randint(Window.height - 64, Window.height))
         self.speed = 200  
 
